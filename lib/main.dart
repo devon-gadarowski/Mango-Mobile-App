@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:ui';
 import 'package:http/http.dart' as http;
+import 'package:google_fonts/google_fonts.dart';
 
 
 import 'package:flutter/material.dart';
@@ -17,21 +18,16 @@ class MyApp extends StatelessWidget
       title: 'Mango',
       theme: ThemeData(
         inputDecorationTheme: InputDecorationTheme(
-          border: UnderlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          fillColor: Color(0xFF75A544),
-          counterStyle: TextStyle(
-            color: Colors.white
-          ),
-          hintStyle: TextStyle(
-            color: Colors.white
-          ),
-          errorStyle: TextStyle(
-            color: Colors.red
-          )
+          border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(10)),
+          fillColor: Color(0x5C75A544),
+          counterStyle: GoogleFonts.zillaSlab(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+          hintStyle: GoogleFonts.zillaSlab(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+          errorStyle: GoogleFonts.zillaSlab(color: Colors.red)
         ),
         buttonTheme: ButtonThemeData(
           buttonColor: Color(0xFF75A544),
-          textTheme: ButtonTextTheme.primary
+          textTheme: ButtonTextTheme.primary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         ),
         primarySwatch: Colors.orange,
       ),
@@ -47,13 +43,7 @@ class MangoTitle extends StatelessWidget
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Text("mango", style: TextStyle(
-          color: Colors.black,
-          fontFamily: "Nunito",
-          fontSize: 32,
-          fontWeight: FontWeight.bold
-          )
-        ),
+        Text("mango", style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 32)),
         Flexible(child: SizedBox(width: 5)),
         SizedBox(height: 32, child: Image(image: AssetImage('assets/mango.png'), fit: BoxFit.scaleDown))
       ]
@@ -74,7 +64,8 @@ class MangoHomePage extends StatelessWidget
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFFFFD151), Color(0xFFFF8C42)]
+              colors: [Color(0xC2F6CD5A), Color(0xFFFF8C42), Color(0xFFEB4F4C)],
+              stops: [0.204, 0.4936, 0.9441]
             )
           ),
           child: MangoLoginBox()
@@ -118,7 +109,7 @@ class MangoLoginState extends State<MangoLoginBox>
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(10)
+          borderRadius: BorderRadius.circular(15)
         ),
         child: Form(
           key: _loginKey,
@@ -128,7 +119,7 @@ class MangoLoginState extends State<MangoLoginBox>
               FractionallySizedBox(
                 child: MangoTitle()
               ),
-              Flexible(child: FractionallySizedBox(heightFactor: 0.3)),
+              Flexible(child: FractionallySizedBox(heightFactor: 0.4)),
               FractionallySizedBox(
                 widthFactor: 0.85,
                 child: TextFormField(
@@ -144,7 +135,7 @@ class MangoLoginState extends State<MangoLoginBox>
                   onSaved: (val) => setState(() => this.email = val)
                 )
               ),
-              Flexible(child: FractionallySizedBox(heightFactor: 0.2)),
+              Flexible(child: FractionallySizedBox(heightFactor: 0.3)),
               FractionallySizedBox(
                 widthFactor: 0.85,
                 child: TextFormField(
@@ -160,11 +151,12 @@ class MangoLoginState extends State<MangoLoginBox>
                   onSaved: (val) => setState(() => this.password = val),
                 )
               ),
-              Flexible(child: FractionallySizedBox(heightFactor: 0.2)),
+              Flexible(child: FractionallySizedBox(heightFactor: 0.4)),
               FractionallySizedBox(
+                widthFactor: 0.5,
                 child: RaisedButton(
                   onPressed: () { doLogin(); },
-                  child: Text("Log In", style: TextStyle(color: Colors.white))
+                  child: Text("Log In", style: GoogleFonts.zillaSlab(color: Colors.white, fontWeight: FontWeight.bold))
                 )
               )
             ]
