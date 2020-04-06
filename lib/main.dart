@@ -4,11 +4,12 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
-
-
 import 'package:flutter/material.dart';
+import 'package:flutter_nfc_reader/flutter_nfc_reader.dart' as nfc;
 
 void main() => runApp(MyApp());
+
+var cookie = "";
 
 //https://flutter.dev/docs/cookbook/navigation/named-routes
 class MyApp extends StatelessWidget
@@ -34,10 +35,11 @@ class MyApp extends StatelessWidget
         primarySwatch: Colors.orange,
       ),
       routes: {
-          '/': (context) => MangoLoginPage(),
-          '/register': (context) => MangoRegisterPage()
+          '/login': (context) => MangoLoginPage(),
+          '/register': (context) => MangoRegisterPage(),
+          '/addDevice': (context) => MangoAddDevicePage()
       },
-      initialRoute: '/'
+      initialRoute: '/login'
     );
   }
 }
@@ -54,6 +56,129 @@ class MangoTitle extends StatelessWidget
         SizedBox(height: 32, child: Image(image: AssetImage('assets/mango.png'), fit: BoxFit.scaleDown))
       ]
     );
+  }
+}
+
+class MangoAddDevicePage extends StatelessWidget
+{
+  Widget build(BuildContext context)
+  {
+    return Scaffold(
+        body: FractionallySizedBox(
+        heightFactor: 1,
+        widthFactor: 1,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xC2F6CD5A), Color(0xFFFF8C42), Color(0xFFEB4F4C)],
+              stops: [0.204, 0.4936, 0.9441]
+            )
+          ),
+          child: MangoAddDevice()
+        )
+      )
+    );
+  }
+}
+
+class MangoAddDevice extends StatefulWidget
+{
+  MangoAddDeviceState createState()
+  {
+    return MangoAddDeviceState();
+  }
+}
+
+class MangoAddDeviceState extends State<MangoAddDevice>
+{
+  int phase = 0;
+
+  void addDevice() async
+  {
+      var response = json.decode((await http.post("http://mango-env.msrndbb6dp.us-east-2.elasticbeanstalk.com/api/addDevice", headers: {"Content-Type": "application/json", "Cookie": cookie}, body: json.encode({}))).body);
+
+      print(response);
+
+      if (!response['success'])
+      {
+        Scaffold.of(context).showSnackBar(SnackBar(content: Text('Failed to add new sensor :(')));
+        return;
+      }
+      else
+      {
+        try
+        {
+          this.setState(() => this.phase = 1);
+          await nfc.FlutterNfcReader.write("deviceID", response['deviceID']).then((response) {
+            print(response.content);
+          });
+        }
+        catch(e)
+        {
+          this.setState(() => this.phase = 2);
+        }
+      }
+  }
+
+  Widget build(BuildContext context)
+  {
+    if (phase == 0)
+      return FractionallySizedBox(
+        child: Container(
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(15)
+        ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text("Add a new Sensor", style: GoogleFonts.zillaSlab(color: Colors.white, fontWeight: FontWeight.bold)),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15)
+                ),
+                child: FlatButton(
+                  child: Text("Do it", style: GoogleFonts.zillaSlab(color: Colors.black, fontWeight: FontWeight.bold)),
+                  onPressed: () { addDevice(); }
+                )
+              )
+            ]
+          )
+        )
+      );
+    else if (phase == 1)
+      return FractionallySizedBox(
+        child: Container(
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(15)
+        ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text("Turn on your sensor and tap it with your phone", style: GoogleFonts.zillaSlab(color: Colors.white, fontWeight: FontWeight.bold))
+            ]
+          )
+        )
+      );
+    else
+      return FractionallySizedBox(
+        child: Container(
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(15)
+        ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text("Failed to pair using NFC", style: GoogleFonts.zillaSlab(color: Colors.white, fontWeight: FontWeight.bold))
+            ]
+          )
+        )
+      );
   }
 }
 
@@ -101,10 +226,20 @@ class MangoLoginState extends State<MangoLoginBox>
   {
     if (_loginKey.currentState.validate())
     {
-      Scaffold.of(context).showSnackBar(SnackBar(content: Text('Logging In')));
-      var response = await http.post("http://localhost:5000/api/login", body: {'email': this.email, 'password': this.password});
+      Scaffold.of(context).showSnackBar(SnackBar(content: Text('Logging In...')));
+      var res = await http.post("http://mango-env.msrndbb6dp.us-east-2.elasticbeanstalk.com/api/login", headers: {"Content-Type": "application/json"}, body: json.encode({'email': this.email, 'password': this.password}));
+      var response = json.decode(res.body);
 
       print(response);
+
+      if (!response["success"])
+        Scaffold.of(context).showSnackBar(SnackBar(content: Text('Bad Login :(')));
+      else
+      {
+        int index = res.headers['set-cookie'].indexOf(';');
+        cookie = (index == -1) ? res.headers['set-cookie'] : res.headers['set-cookie'].substring(0, index);
+        Navigator.popAndPushNamed(context, '/addDevice');
+      }
     }
   }
 
@@ -136,12 +271,12 @@ class MangoLoginState extends State<MangoLoginBox>
                   validator: (value) {
                     if (value.isEmpty)
                     {
-                      return 'password invalid';
+                      return 'email invalid';
                     }
 
                     return null;
                   },
-                  onSaved: (val) => setState(() => this.email = val)
+                  onChanged: (val) => setState(() => this.email = val)
                 )
               ),
               Flexible(child: FractionallySizedBox(heightFactor: 0.3)),
@@ -158,7 +293,7 @@ class MangoLoginState extends State<MangoLoginBox>
 
                     return null;
                   },
-                  onSaved: (val) => setState(() => this.password = val),
+                  onChanged: (val) => setState(() => this.password = val),
                 )
               ),
               Flexible(child: FractionallySizedBox(heightFactor: 0.4)),
@@ -232,13 +367,17 @@ class MangoRegisterState extends State<MangoRegisterBox>
     if (_registerKey.currentState.validate())
     {
       Scaffold.of(context).showSnackBar(SnackBar(content: Text('Registering Account')));
-      var response = await http.post("http://localhost:5000/api/register", body: {'name': this.name, 'email': this.email, 'password': this.password1});
+      var response = json.decode((await http.post("http://mango-env.msrndbb6dp.us-east-2.elasticbeanstalk.com/api/register", headers: {"Content-Type": "application/json"}, body: json.encode({'name': this.name, 'email': this.email, 'password': this.password1}))).body);
 
       print(response);
+
+      if (!response["success"])
+        Scaffold.of(context).showSnackBar(SnackBar(content: Text('Bad Register :(')));
+      else
+        Navigator.popAndPushNamed(context, '/login');
     }
   }
 
-// TODO: Improve and cleanup Forms
 // https://medium.com/swlh/working-with-forms-in-flutter-a176cca9449a
 
   // https://flutter.dev/docs/cookbook/forms/validation
