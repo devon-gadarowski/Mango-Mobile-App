@@ -100,9 +100,9 @@ class AddDeviceCard extends StatelessWidget
   Widget build(BuildContext context)
   {
     return FlatButton(
-      onPressed: () => Navigator.pushNamed(context, "/addDevice"),
+      onPressed: () {},
       child: Container(
-        height: 0.1 * window.physicalSize.height,
+        height: 0.15 * window.physicalSize.height,
         width: 0.2 * window.physicalSize.height,
         margin: EdgeInsets.fromLTRB(0.05 * window.physicalSize.width, 0.05 * window.physicalSize.width, 0.05 * window.physicalSize.width, 0.05 * window.physicalSize.width),
         decoration: BoxDecoration(
@@ -114,7 +114,7 @@ class AddDeviceCard extends StatelessWidget
           children: <Widget> [
             Align(
               alignment: Alignment.center,
-              child: Text("Add a new Greenhouse", style: GoogleFonts.nunito(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 20), textAlign: TextAlign.center)
+              child: Text("Sign in to our website to add a new Greenhouse", style: GoogleFonts.nunito(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 20), textAlign: TextAlign.center)
             ),
             Flexible(child: FractionallySizedBox(heightFactor: 0.1)),
             SvgPicture.asset("assets/greenhouse.svg")
@@ -167,7 +167,9 @@ class MangoDeviceCardState extends State<MangoDeviceCard>
       List<String> l = record["datetime"].toString().split(new RegExp(r" |:|/"));
       DateTime dt = new DateTime.utc(int.parse(l[2]), int.parse(l[0]), int.parse(l[1]), int.parse(l[3]) + ((l[5] == "PM") ? 12 : 0), int.parse(l[4]));
 
-      if (DateTime.now().millisecondsSinceEpoch - dt.millisecondsSinceEpoch > 2 * 60 * 60 * 1000)
+      print(record);
+
+      if (DateTime.now().millisecondsSinceEpoch - dt.millisecondsSinceEpoch > 24 * 60 * 60 * 1000)
         continue;
 
       conditions.putIfAbsent(dt.toLocal(), () => new Condition(datetime: dt, temp: ((record["curTemp"] * 9.0 / 5.0) + 32), humidity: record["curHumidity"] * 1.0));
